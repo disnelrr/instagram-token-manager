@@ -139,3 +139,17 @@ function instagram_token_manager_cron_exec() {
     update_option('instagram_token_last_update', time());
   }
 }
+
+add_action(
+ 'graphql_register_types',
+ function () {
+   register_graphql_field('RootQuery', 'brsGetInstagramToken', [
+    'type' => ['non_null' => 'String'],
+    'description' => __('Token for instagram feed block', 'your-textdomain'),
+    'resolve' => function() {
+       return get_option('instagram_token', '');
+    }
+   ]);
+  
+ }
+);
