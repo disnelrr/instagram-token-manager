@@ -107,6 +107,11 @@ function instagram_token_manager_cron_exec() {
   $last_updated = get_option('instagram_token_last_update');
   $current_time = time();
 
+  // If there is no option set yet, cancel
+  if (!get_option('instagram_token')) {
+    return;
+  }
+
   if (!last_updated) {
     update_option('instagram_token_last_update', $current_time);
     return;
