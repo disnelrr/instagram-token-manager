@@ -151,10 +151,6 @@ function instagram_token_manager_sanitize_token($new_value)
   $old_value = (string) get_option(ITM_OPTION_TOKEN, '');
   $now = instagram_token_manager_now();
 
-  if ($new_value !== '') {
-    update_option(ITM_OPTION_TOKEN, $new_value, 'no');
-  }
-
   // If token changed, reset last update and clear last error.
   if ($new_value !== '' && $old_value !== $new_value) {
     update_option(ITM_OPTION_LAST_UPDATE, $now, 'no');
@@ -387,7 +383,7 @@ function instagram_token_manager_http_get($url, $args)
 function instagram_token_manager_fetch_media_response($limit, $token)
 {
   $url = add_query_arg([
-    'fields'       => 'id,caption,media_url,permalink,timestamp',
+    'fields'       => 'id,caption,media_type,media_url,thumbnail_url,permalink,timestamp',
     'limit'        => $limit,
     'access_token' => $token,
   ], 'https://graph.instagram.com/me/media');
@@ -444,11 +440,13 @@ function instagram_token_manager_parse_media_items($data)
     }
 
     $items[] = [
-      'id'        => isset($item['id']) ? (string) $item['id'] : '',
-      'mediaUrl'  => isset($item['media_url']) ? esc_url_raw($item['media_url']) : '',
-      'permalink' => isset($item['permalink']) ? esc_url_raw($item['permalink']) : '',
-      'caption'   => isset($item['caption']) ? sanitize_text_field($item['caption']) : '',
-      'timestamp' => isset($item['timestamp']) ? sanitize_text_field($item['timestamp']) : '',
+      'id'           => isset($item['id']) ? (string) $item['id'] : '',
+      'mediaType'    => isset($item['media_type']) ? sanitize_text_field($item['media_type']) : '',
+      'mediaUrl'     => isset($item['media_url']) ? esc_url_raw($item['media_url']) : '',
+      'thumbnailUrl' => isset($item['thumbnail_url']) ? esc_url_raw($item['thumbnail_url']) : '',
+      'permalink'    => isset($item['permalink']) ? esc_url_raw($item['permalink']) : '',
+      'caption'      => isset($item['caption']) ? sanitize_text_field($item['caption']) : '',
+      'timestamp'    => isset($item['timestamp']) ? sanitize_text_field($item['timestamp']) : '',
     ];
   }
 
@@ -510,9 +508,17 @@ add_action('graphql_register_types', function () {
           'type' => 'String',
           'description' => __('Media ID', 'instagram-token-manager'),
         ],
+        'mediaType' => [
+          'type' => 'String',
+          'description' => __('Media type (IMAGE, VIDEO, CAROUSEL_ALBUM).', 'instagram-token-manager'),
+        ],
         'mediaUrl' => [
           'type' => 'String',
           'description' => __('Media URL', 'instagram-token-manager'),
+        ],
+        'thumbnailUrl' => [
+          'type' => 'String',
+          'description' => __('Thumbnail URL (primarily for VIDEO).', 'instagram-token-manager'),
         ],
         'permalink' => [
           'type' => 'String',
